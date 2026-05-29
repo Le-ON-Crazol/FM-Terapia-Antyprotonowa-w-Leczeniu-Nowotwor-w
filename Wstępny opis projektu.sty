@@ -1,0 +1,144 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+% Manually translating standard names for Polish
+\renewcommand{\abstractname}{Streszczenie}
+\renewcommand{\figurename}{Rysunek}
+\renewcommand{\tablename}{Tabela}
+
+\title{\textbf{Teoretyczna i numeryczna analiza możliwości zastosowania wiązek antyprotonów w radioterapii onkologicznej}}
+\author{\textbf{Analiza Założeń i Opisu Problemu Badawczego} \\ Wydział Fizyki, Politechnika Warszawska}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Niniejszy dokument stanowi skorygowany, rozszerzony i ustrukturyzowany opis założeń projektu naukowo-badawczego dotyczącego terapii antyprotonowej. Tekst został poprawiony pod kątem ścisłości fizycznej, ze szczególnym uwzględnieniem rozróżnienia oddziaływań elektromagnetycznych (pik Bragga) od procesów jądrowych (anihilacja). Wprowadzono pełen formalizm matematyczny niezbędny do implementacji numerycznej.
+\end{abstract}
+
+\section{Cel projektu}
+Celem projektu jest teoretyczna oraz numeryczna analiza możliwości zastosowania wiązek antyprotonów ($\bar{p}$) w radioterapii onkologicznej. Badania koncentrują się na precyzyjnym wyznaczeniu przestrzennego rozkładu dawki absorbowanej (energii przekazanej ośrodkowi na jednostkę masy) w tkance, ze szczególnym uwzględnieniem zjawisk zachodzących na końcu zasięgu cząstek.
+
+\section{Opis problemu (Kliniczne uzasadnienie)}
+Klasyczne metody radioterapii napotykają barierę biologicznej oporności niektórych typów nowotworów. Kluczowym problemem jest \textbf{hipoksja (niedotlenienie)} wnętrza dużych guzów. W warunkach niedotlenienia skuteczność promieniowania rzadkojonizującego (np. fotonów) spada nawet 2--3 krotnie, ponieważ ich destrukcyjne działanie opiera się pośrednio na tworzeniu wolnych rodników tlenowych niszczących DNA. 
+
+Aby skutecznie zneutralizować komórki hipoksyjne, wymagane jest dostarczenie promieniowania o wysokim \textbf{Liniowym Przekazie Energii (LET, ang. \textit{Linear Energy Transfer})}, które wywołuje bezpośrednie, nieodwracalne uszkodzenia struktury podwójnej nici DNA (tzw. \textit{Double-Strand Breaks}, DSB). Terapia antyprotonowa łączy ekstremalną precyzję przestrzenną z potężnym, lokalnym gęstym jonizowaniem jądrowym.
+
+\section{Stosowane obecnie metody i ich ograniczenia}
+Standardem w radioterapii klinicznej jest teleterapia fotonowa (promieniowanie X o wysokiej energii, rzędu MeV). Fotony, jako cząstki bezmasowe, oddziałują z materią głównie poprzez efekt fotoelektryczny, rozpraszanie Comptonowskie oraz kreację par elektron-pozyton. 
+
+Z matematycznego punktu widzenia, osłabienie natężenia wiązki fotonów $I(x)$ w miarę upływu drogi $x$ w jednorodnym ośrodku opisuje \textbf{prawo Lamberta-Beera}:
+\begin{equation}
+I(x) = I_0 \cdot e^{-\mu x}
+\end{equation}
+gdzie $I_0$ to natężenie początkowe, a $\mu$ to liniowy współczynnik osłabienia. Konsekwencją tego wykładniczego spadku jest brak piku Bragga -- fotony oddają maksimum dawki stosunkowo płytko pod powierzchnią skóry, a następnie dawka maleje wraz z głębokością. Promieniowanie przechodzi przez pacjenta na wylot, niszcząc zdrowe tkanki zarówno przed, jak i za guzem. W celu ochrony zdrowych narządów stosuje się techniki wielowiązkowe (np. IMRT, VMAT), krzyżując wiele wiązek pod różnymi kątami w przestrzeni 3D, co jednak podnosi całkowitą dawkę integralną przyjętą przez ciało pacjenta.
+
+\section{Fizyka oddziaływania antyprotonów z materią}
+W celu zachowania ścisłości naukowej, proces przejścia antyprotonu przez tkankę (fantom wodny) należy bezwzględnie podzielić na dwa niezależne, sekwencyjne etapy fizyczne:
+
+\subsection{Faza lotu i formowanie piku Bragga (Oddziaływanie elektromagnetyczne)}
+Antyproton, jako cząstka naładowana o masie zbliżonej do masy protonu ($m_{\bar{p}} \approx 938,27 \text{ MeV/c}^2$, ładunek $z = -1$), poruszając się w ośrodku, oddziałuje kulombowsko z elektronami walcowymi atomów tkanki. Proces ten prowadzi do stopniowej jonizacji i wzbudzania atomów, co skutkuje ciągłą stratą energii kinetycznej.
+
+\textbf{Pik Bragga} jest zjawiskiem czysto elektromagnetycznym i opisuje profil strat energii na jednostkę drogi (zdolność hamowania). Wynika on bezpośrednio z mechaniki relatywistycznej -- prawdopodobieństwo oddziaływania kulombowskiego rośnie gwałtownie wraz ze spadkiem prędkości cząstki. Maksimum straty energii następuje tuż przed całkowitym zatrzymaniem cząstki. Zjawisko to występuje identycznie dla protonów i antyprotonów.
+
+\subsection{Gwiazda anihilacyjna (Oddziaływanie silne i jądrowe)}
+Dopiero w momencie, gdy antyproton straci niemal całą swoją energię kinetyczną i jego prędkość spadnie do wartości termicznych, zostaje on przechwycony przez pole coulombowskie najbliższego jądra atomowego (np. tlenu lub węgla w tkance), tworząc tzw. antyprotonowy atom egzotyczny. Następnie antyproton kaskadowo opada na niższe orbity, aż dotknie powierzchni jądra.
+
+W tym punkcie dochodzi do \textbf{anihilacji} antyprotonu z jednym z nukleonów (protonem lub neutronem) pod wpływem oddziaływania silnego. Proces ten uwalnia energię równą masie spoczynkowej obu cząstek:
+\begin{equation}
+E_{\text{ann}} \approx 2 \cdot m_p c^2 \approx 1,88 \text{ GeV}
+\end{equation}
+Większość tej energii (ok. $60-70\%$) jest unoszona przez szybkie mezony $\pi$ (piony: $\pi^+, \pi^-, \pi^0$). Jednak pozostała część energii powoduje natychmiastowe rozbicie (wzbudzenie i fragmentację) jądra atomowego, w którym zaszła anihilacja. Zjawisko to nosi nazwę \textbf{gwiazdy anihilacyjnej}. W jego wyniku we wszystkich kierunkach zostają rozrzucone wysokoenergetyczne, ciężkie odłamki jądrowe (jony węgla, helu, litu, protony i neutrony odrzutu), które charakteryzują się ogromną wartością LET na bardzo krótkim dystansie.
+
+\section{Aparat matematyczny i modelowanie numeryczne}
+Do poprawnego zakodowania symulacji numerycznej i obliczenia rozkładu dawki należy wykorzystać poniższy aparat matematyczny.
+
+\subsection{Zasięg i tor antyprotonu: Równanie Bethego-Blocha}
+Do wyznaczenia średniej straty energii antyprotonu na jednostkę drogi (masowej zdolności hamowania) stosuje się kwantowomechaniczne \textbf{równanie Bethego-Blocha}:
+\begin{equation}
+-\frac{dE}{dx} = \frac{4\pi N_A r_e^2 m_e c^2}{\beta^2} \rho \frac{Z}{A} z^2 \left[ \ln \left( \frac{2m_e c^2 \beta^2 \gamma^2 T_{\max}}{I} \right) - \beta^2 - \frac{\delta(\beta)}{2} \right]
+\end{equation}
+gdzie:
+\begin{itemize}
+    \item $N_A$ -- stała Avogadra, $r_e$ -- klasyczny promień elektronu, $m_e$ -- masa elektronu,
+    \item $\beta = v/c$ -- prędkość relatywistyczna cząstki, $\gamma = 1/\sqrt{1-\beta^2}$ -- czynnik Lorentza,
+    \item $\rho, Z, A, I$ -- gęstość, liczba atomowa, masa molowa oraz średni potencjał wzbudzenia ośrodka (dla fantomu wodnego przyjmuje się parametry efektywne wody),
+    \item $z = -1$ -- ładunek antyprotonu (zauważmy, że we wzorze występuje $z^2 = 1$, więc znak ładunku nie zmienia wartości straty energii w pierwszym przybliżeniu),
+    \item $T_{\max}$ -- maksymalna energia kinetyczna przekazywana w pojedynczym zderzeniu.
+\end{itemize}
+
+\textbf{Wyjaśnienie matematyczne transformacji i piku Bragga:}\\
+Dla energii nierelatywistycznych ($\beta \ll 1$), czynnik przed nawiasem dominuje nad wolno zmieniającą się funkcją logarytmiczną w nawiasie. Możemy wówczas zapisać uproszczoną proporcjonalność:
+\begin{equation}
+-\frac{dE}{dx} \propto \frac{1}{\beta^2} \propto \frac{1}{v^2}
+\end{equation}
+Ponieważ prędkość cząstki $v$ znajduje się w mianowniku, w miarę jak antyproton leci w głąb tkanki i zwalnia ($v \to 0$), wartość ułamka gwałtownie dąży do nieskończoności. To właśnie ta zależność $\frac{1}{v^2}$ generuje matematyczny kształt piku Bragga -- nagłą eksplozję straty energii tuż przed zatrzymaniem.
+
+\subsection{Głębokość wnikania: Przybliżenie CSDA}
+Aby obliczyć całkowity zasięg cząstki $R$, stosujemy \textbf{przybliżenie ciągłego spowalniania (CSDA, ang. \textit{Continuous Slowing Down Approximation})}. Zakłada ono, że cząstka traci energię w sposób ciągły i deterministyczny. 
+
+Matematycznie, jeśli znamy funkcję zdolności hamowania $\frac{dE}{dx}(E)$, możemy rozdzielić zmienne w równaniu różniczkowym: $dx = \frac{1}{|dE/dx|} dE$. Całkując obustronnie od energii początkowej $E_0$ do energii końcowej $0$, otrzymujemy całkowitą drogę (zasięg) $R_{\text{CSDA}}$:
+\begin{equation}
+R_{\text{CSDA}} = \int_{0}^{E_0} \frac{1}{\left( -\frac{dE}{dx} \right)} dE
+\end{equation}
+W algorytmie numerycznym całkę tę oblicza się poprzez dyskretyzację energii (np. metodą trapezów) dla małych kroków $\Delta E$:
+\begin{equation}
+R_{\text{CSDA}} \approx \sum_{i} \frac{1}{f(E_i)} \Delta E_i
+\end{equation}
+gdzie $f(E_i) = -\frac{dE}{dx}\big|_{E=E_i}$ jest wyznaczane z równania Bethego-Blocha dla każdego kroku energetycznego.
+
+\subsection{Zasięg mikrowybuchu: Reguła Geigera / Prawa Skalowania}
+Ciężkie odłamki jądrowe powstałe w gwieździe anihilacyjnej posiadają relatywnie niskie energie kinetyczne i wysokie ładunki. Do szybkiego, analitycznego oszacowania ich zasięgu $R_{\text{frag}}$ w kodzie, można użyć \textbf{prawa skalowania Geigera}:
+\begin{equation}
+\label{eq:geiger}
+R_{\text{frag}} = \alpha \cdot E_{\text{frag}}^{3/2}
+\end{equation}
+gdzie $\alpha$ jest stałą empiryczną zależną od rodzaju odłamka i ośrodka, a $E_{\text{frag}}$ to energia kinetyczna odłamka. 
+
+\textbf{Wniosek matematyczny:}\\
+Wykładnik $3/2 = 1,5$ powoduje, że dla niskich energii odłamków funkcja zasięgu rośnie bardzo powoli. Wyznaczenie tego zasięgu pozwala numerycznie udowodnić, że promień rażenia ciężkich odłamków wynosi zaledwie $R_{\text{frag}} \approx 1-2 \text{ mm}$. Dzięki temu energia deponowana jest skrajnie lokalnie.
+
+\section{Analiza skuteczności biologicznej i efektów wtórnych}
+Ciężkie jony z rozpadu jądra charakteryzują się bardzo wysokim współczynnikiem LET. Przekłada się to na wysoką \textbf{Względną Skuteczność Biologiczną (RBE, ang. \textit{Relative Biological Effectiveness})}. Prawdopodobieństwo rozerwania obu nici helisy DNA (DSB) drastycznie rośnie.
+
+\subsection{Szkodliwość poboczna (Promieniowanie wtórne)}
+Należy uwzględnić, że ok. $1,2 \text{ GeV}$ energii anihilacji ucieka z promieniem guza w postaci pionów:
+\begin{itemize}
+    \item Piony naładowane ($\pi^+, \pi^-$) deponują niewielką dawkę w całym ciele pacjenta (promieniowanie wtórne).
+    \item Piony neutralne ($\pi^0$) rozpadają się na dwa wysokofotonowe kwanty gamma: $\pi^0 \to \gamma + \gamma$, które również generują dawkę rozproszoną.
+\end{itemize}
+\textbf{Aspekt Diagnostyczny:} Piony można wykorzystać diagnostycznie. Ich detekcja poza ciałem pacjenta umożliwia tomografię w czasie rzeczywistym, weryfikując przestrzenne pokrycie piku Bragga z pozycją guza.
+
+\section{Analiza porównawcza cząstek alternatywnych}
+\begin{table}[h!]
+\centering
+\caption{Porównanie charakterystyk fizycznych cząstek w radioterapii.}
+\label{tab:comparison}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Cząstka} & \textbf{Masa spoczynkowa} & \textbf{Pik Bragga} & \textbf{Anihilacja} & \textbf{Profil dawki} \\ \midrule
+Fotony ($X$) & $0$ & Brak & Nie & Wykładniczy spadek ($e^{-\mu x}$) \\
+Protony ($p$) & $\sim 938,3 \text{ MeV/c}^2$ & Tak & Nie & Precyzyjny pik \\
+Pozytony ($e^+$) & $\sim 0,511 \text{ MeV/c}^2$ & Brak & Tak ($e^+ + e^-$) & Silne rozproszenie \\
+\textbf{Antyprotony} & $\sim 938,3 \text{ MeV/c}^2$ & \textbf{Tak} & \textbf{Tak} (jądrowa) & \textbf{Pik + Gwiazda} \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Wnioski z porównania}
+\begin{itemize}
+    \item \textbf{Protony vs Antyprotony:} Mają ten sam profil elektromagnetyczny (pik Bragga). Antyprotony dostarczają jednak dodatkową dawkę odłamkową o wysokim LET z anihilacji na samym końcu swojego toru.
+    \item \textbf{Pozytony ($e^+$):} Ze względu na znikomą masę ulegają wielokrotnemu rozproszeniu w tkance, nie tworząc piku Bragga. Ich anihilacja z elektronami produkuje fotony gamma o energii $511 \text{ keV}$, które opuszczają ciało pacjenta i nie niszczą guza (przydatne w diagnostyce PET, ale nie w leczeniu).
+\end{itemize}
+
+\end{document}
