@@ -1,0 +1,53 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[polish]{babel}
+
+\title{FM Terapia Antyprotonowa w Leczeniu Nowotworów}
+\author{Leon Wojtachnia, Jakub Wołejko, Ignacy Rugowski, Tymon Szymański}
+\date{May 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Cel projektu}
+Głównym celem projektu jest teoretyczna i numeryczna analiza możliwości zastosowania wiązek antyprotonowych w radioterapii onkologicznej, jako innowacyjnej metody leczenia nowotworów. Terapia ta ma na celu stanowić odpowiedź na dotychczasowe ograniczenia fizyczne oraz biologiczne metod napromieniania. Ma oferować precyzyjność w niszczeniu chorych tkanek przy jednoczesnym omijaniu zdrowych narządów pacjenta.
+
+\section{Opis problemu}
+Głównym problemem współczesnej onkologii jest biologiczna oporność niektórych typów nowotworów na klasyczne metody radioterapii. Wynika to przede wszystkim ze zjawiska hipoksji, czyli stanu, w którym tkanki organizmu otrzymują zbyt małą ilość tlenu w stosunku do ich zapotrzebowania, co występuje głównie we wnątrzu dużych guzów. W takich przypadkach standardowe promieniowanie rzadkojonizujące jest mało skuteczne, a jego skuteczność spada nawet dwu- lub trzykrotnie. Dzieje się to dlatego, że fotony nie niszczą komórek bezpośrednio: jonizują wodę w komórkach, tworząc wolne rodniki, które uszkadzają obie nici DNA. Kolejnym problemem fotonów jest brak piku Bragga, co oznacza, że fotony oddają swoją energię na całej długości przenikania przez ciało i narażają zdrowe tkanki na niepotrzebne i szkodliwe promieniowanie.
+\newline
+
+Aby skutecznie ominąć tę barierę niedotlenienia i zneutralizować komórki hipoksyjne, współczesna fizyka medyczna musi zastosować promieniowanie o wysokim liniowym przekazie energii (LET). Promieniowanie to nie wymaga obecności tlenu, ponieważ jego gęstość jonizacji jest wystarczająco duża, aby wywołać bezpośrednie i nieodwracalne uszkodzenia struktury DNA (tzw. Double-Strand Breaks, DSB). Rozwiązaniem tego problemu jest właśnie terapia antyprotonowa. Łączy ona w sobie precyzję przestrzenną z ogromnym, lokalnym oraz gęstym jonizowaniem jądrowym. Pozwala to na zatrzymanie cząstki dokładnie na poziomie guza, gdzie dochodzi do jej zniszczenia, unikając przy tym tkanek występujących przed i za guzem, dzięki czemu są one bezpieczne.
+
+\section{Fizyka oddziaływania antyprotonów z materią}
+Założeniem terapii antyprotonowej jest skierowanie wiązki cząstek o ściśle określonej energii początkowej na nowotwór. Przechodząc przez tkanki, antyprotony oddziałują z nimi, tracąc przez to swoją energię kinetyczną. W celu uproszczenia naszego modelu przyjmujemy, że tkanka miękka wykazuje właściwości zbliżone do wody. Zdolność hamowania opisuje tu równanie Bethego-Blocha:
+\begin{equation}
+    -\frac{\mathrm{d}E}{\mathrm{d}x} = \frac{4\pi N_{\mathrm{A}} Z \rho}{A m_{\mathrm{u}} m_{\mathrm{e}} c^2} \left( \frac{e^2}{4\pi\varepsilon_0} \right)^2 \frac{z^2}{\beta^2} \left[ \frac{1}{2} \ln \left( \frac{2m_{\mathrm{e}} c^2 \beta^2 T_{\mathrm{max}}}{(1 - \beta^2) I^2} \right) - \beta^2 - \frac{\delta}{2} \right]
+\end{equation}
+
+\begin{figure}[htp!]
+    \centering
+    \includegraphics[width=0.75\linewidth]{obraz.png}
+    \label{fig:bragg_peak}
+\end{figure}
+
+Zgodnie z charakterystyką oddziaływania tej cząstki, utrata energii jest odwrotnie proporcjonalna do kwadratu jej prędkości. Prowadzi to do intensywnego wyładowania pozostałej energii pod koniec lotu, co określa się pikiem Bragga. Symulację numeryczną ilustrującą utratę energii antyprotonu w funkcji głębokości penetracji, na której wyraźnie widoczny jest ten pik, udostępniliśmy w repozytorium projektu: 
+\newline
+\url{https://github.com/Le-ON-Crazol/FM-Terapia-Antyprotonowa-w-Leczeniu-Nowotwor-w/tree/main}.
+\newline
+
+Główna różnica pomiędzy klasyczną radioterapią protonową a antyprotonową jest widoczna w momencie zatrzymania cząstki. Po utracie energii kinetycznej antyproton zostaje przechwycony przez jądro pobliskiego atomu tkanki, gdzie łączy się z jednym nukleonem i ulega natychmiastowej anihilacji, w wyniku której uwalniana jest energia spoczynkowa ok. $1{,}88~\mathrm{GeV}$. Prowadzi to do rozpadu jądra atomowego i emisji wysokoenergetycznych fragmentów (np. cząstek $\alpha$, powolnych protonów oraz jąder odrzutu), co określa się gwiazdą anihilacyjną. Emitowane cząstki mają bardzo krótki zasięg (rzędu milimetrów), co pozwala na precyzyjne ograniczenie działania tylko do obszaru guza, minimalizując szanse na uszkodzenie zdrowej tkanki.
+\newline
+
+Do obliczeń wykorzystuje się przybliżenie ciągłego spowolnienia (CSDA), które pozwala na całkowanie utraty energii wzdłuż całego toru lotu. W celu optymalizacji tych obliczeń wykorzystuje się prawo skalowania zasięgu oraz reguły potęgowe (np. reguła Bragga-Kleemana).
+
+\section{Analiza skuteczności i szkodliwości pobocznej}
+Główną zaletą anihilacji antyprotonowej jest generowanie promieniowania o bardzo wysokim liniowym przekazie energii (LET). Cząstki uwalniane w gwieździe anihilacyjnej posiadają ogromną ilość energii skupioną na małym dystansie, powodując zniszczenie obu nici DNA (DSB). Dzięki temu możliwe jest zwiększenie skuteczności leczenia nowotworów niedotlenionych, w przeciwieństwie do promieniowania fotonowego o niskim LET.
+\newline
+
+Głównym problemem terapii antyprotonowej jest generowanie promieniowania wtórnego. W procesie anihilacji nie powstają tylko ciężkie fragmenty jądrowe odpowiedzialne za lokalne uwalnianie energii, lecz również lżejsze mezony, w tym piony naładowane ($\pi^{\pm}$) oraz neutralne ($\pi^0$). Piony neutralne bardzo szybko rozpadają się na wysokoenergetyczne fotony promieniowania gamma, które ze względu na swoją dużą przenikliwość opuszczają obszar guza i rozpraszają się w ciele pacjenta, podnosząc ogólne tło radiacyjne i zwiększając całkowitą dawkę pochłoniętą. Może to skutkować ryzykiem napromieniowania zdrowych narządów oraz zwiększa szanse na wystąpienie nowotworów wtórnych.
+
+Szczególnie istotna jest tu anihilacja antyprotonów na jądrach wodoru. Wodór jest pierwiastkiem najliczniej reprezentowanym w tkankach ludzkich, gdyż wchodzi w skład cząsteczek wody (stanowiącej ok. 60\% masy ciała) oraz licznych związków organicznych. Stężenie atomów wodoru jest zatem znacznie wyższe niż tlenu czy węgla, co sprawia, że reakcja $\bar{p}p$ zachodzi często na całej długości toru lotu antyprotonu, nie tylko w piku Bragga. W odróżnieniu od anihilacji na ciężkich jądrach, reakcja na protonach nie produkuje krótko zasięgowych fragmentów jądrowych, lecz niemal wyłącznie piony. Znaczna frakcja tych pionów to $\pi^0$, które natychmiast rozpadają się na pary fotonów gamma swobodnie opuszczających obszar guza i deponujących energię w zdrowych narządach. Skumulowany wkład tych reakcji do tła radiacyjnego może być zatem znaczący i stanowi jeden z kluczowych czynników wymagających uwzględnienia w planowaniu leczenia, szczególnie w terapii wielofrakcyjnej.
+
+\end{document}
