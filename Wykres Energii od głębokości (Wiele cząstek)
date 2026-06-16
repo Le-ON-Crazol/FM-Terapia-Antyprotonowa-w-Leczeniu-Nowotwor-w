@@ -1,0 +1,186 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, RadioButtons
+from scipy.ndimage import gaussian_filter1d
+
+# --- PARAMETRY FIZYCZNE ---
+alpha_p = 0.0022  # Współczynnik dla protonów
+p = 1.77  # Wykładnik potęgowy dla wody
+x = np.linspace(0, 40, 1500)  # Oś głębokości
+bins_per_cm = len(x) / (x[-1] - x[0])
+
+# Stała paleta kolorów dla cząstek
+COLORS = {
+    'Proton': 'blue',
+    'Antyproton': 'red',
+    'Jon Węgla': 'green',
+    'Elektron': 'orange',
+    'Pozyton': 'purple'
+}
+
+
+def calculate_profile(E0, particle_type):
+    """
+    Oblicza profil zdeponowanej energii (dE/dx) w zależności od wybranej cząstki.
+    Zwraca tablicę wartości dE/dx oraz efektywny zasięg R.
+    """
+    dedx = np.zeros_like(x)
+    R_proton = alpha_p * (E0 ** p)
+
+    # ----------------------------------------------------
+    # 1. CIĘŻKIE CZĄSTKI (Proton, Antyproton, Jon Węgla)
+    # ----------------------------------------------------
+    if particle_type in ['Proton', 'Antyproton', 'Jon Węgla']:
+        # Skalowanie zasięgu dla Jonu Węgla
+        R = R_proton * 0.85 if particle_type == 'Jon Węgla' else R_proton
+
+        const = 1.0 / (p * (alpha_p ** (1.0 / p)))
+        exponent = (1.0 - p) / p
+
+        # Generowanie odwróconego równania Bragga-Kleemana
+        for i, xi in enumerate(x):
+            if xi < R - 0.1:
+                dedx[i] = const * ((R - xi) ** exponent)
+            elif R - 0.1 <= xi < R + 0.1:
+                dedx[i] = dedx[i - 1] * 1.1 if i > 0 else 0
+
+        # Rozmycie (straggling) zależne od cząstki
+        if particle_type == 'Jon Węgla':
+            straggling_sigma_cm = 0.05 + (R * 0.002)  # Ostry pik
+            dedx = gaussian_filter1d(dedx, sigma=straggling_sigma_cm * bins_per_cm)
+
+            # Dodanie OGONA FRAGMENTACJI dla węgla
+            tail_mask = x > R
+            if len(x[tail_mask]) > 0:
+                peak_height = max(dedx)
+                dedx[tail_mask] += (peak_height * 0.12) * np.exp(-(x[tail_mask] - R) / 4.0)
+
+        else:
+            straggling_sigma_cm = 0.15 + (R * 0.01)  # Większe rozmycie dla protonów
+            dedx = gaussian_filter1d(dedx, sigma=straggling_sigma_cm * bins_per_cm)
+
+            # Dodanie GWIAZDY ANIHILACYJNEJ dla Antyprotonu
+            if particle_type == 'Antyproton':
+                sigma_wybuchu = 0.15 + (R / 120.0)
+                amplituda_wybuchu = 100.0 * (1 - (R / 80.0))
+                dodatkowa_energia = amplituda_wybuchu * np.exp(-0.5 * ((x - R) / sigma_wybuchu) ** 2)
+                dedx += dodatkowa_energia
+
+        return dedx, R
+
+    # ----------------------------------------------------
+    # 2. LEKKIE CZĄSTKI (Elektron, Pozyton)
+    # ----------------------------------------------------
+    elif particle_type in ['Elektron', 'Pozyton']:
+        R_eff = E0 / 3.0  # Przybliżony zasięg praktyczny
+        peak_depth = R_eff / 4.0
+
+        C = 1.0 / (peak_depth + 1.0)
+        B = 2.0
+        A = 5.0
+        dedx = (A + B * x) * np.exp(-C * x)
+
+        if particle_type == 'Pozyton':
+            # Rozmyte tło z anihilacji
+            dedx += 2.0 * np.exp(-0.5 * ((x - R_eff) / 3.0) ** 2)
+
+        return dedx, R_eff
+
+
+# --- KONFIGURACJA OKNA I WYKRESÓW ---
+fig, ax = plt.subplots(figsize=(14, 8))
+fig.canvas.manager.set_window_title('Symulator Cząstek: Porównanie')
+
+# POPRAWKA UI: Przesunięcie wykresu bardziej w prawo (left=0.38), aby etykieta osi Y
+# nie nakładała się na radio buttony.
+plt.subplots_adjust(left=0.38, bottom=0.25)
+
+# Inicjalizacja pustych obiektów wykresu (zostaną zaktualizowane w pętli)
+line1, = ax.plot([], [], lw=2.5)
+line2, = ax.plot([], [], lw=2.5, linestyle='--')  # Druga cząstka jest rysowana linią przerywaną
+
+vline1 = ax.axvline(x=0, linestyle=':', alpha=0.6)
+vline2 = ax.axvline(x=0, linestyle=':', alpha=0.6)
+
+fill1 = None
+fill2 = None
+
+# Estetyka osi
+ax.set_xlim(0, 40)
+ax.set_xlabel('Głębokość w tkance $x$ [cm]', fontsize=11)
+ax.set_ylabel('Oddana energia $S = -dE/dx$ [MeV/cm] (j.względne)', fontsize=11)
+ax.set_title("Rozkład dawki: Porównanie dwóch cząstek", fontweight='bold', fontsize=14)
+ax.grid(True, linestyle='--', alpha=0.6)
+
+# --- WIDGETY (Suwak i 2x Radio Buttons) ---
+# Skrócenie podpisu suwaka i przesunięcie go w prawo
+ax_slider_E = plt.axes([0.38, 0.1, 0.55, 0.04], facecolor='lightgrey')
+slider_E = Slider(ax_slider_E, 'Energia $E_0$ [MeV]', 50.0, 250.0, valinit=150.0, color='royalblue')
+
+opcje = ('Proton', 'Antyproton', 'Jon Węgla', 'Elektron', 'Pozyton')
+
+# Panel Cząstki 1 - lekko zwężony i odsunięty
+ax_radio1 = plt.axes([0.02, 0.35, 0.11, 0.45], facecolor='lightgrey')
+ax_radio1.set_title('Cząstka 1', fontweight='bold')
+radio1 = RadioButtons(ax_radio1, opcje, active=0)  # Domyślnie Proton
+
+# Panel Cząstki 2 - lekko zwężony i odsunięty
+ax_radio2 = plt.axes([0.15, 0.35, 0.11, 0.45], facecolor='lightgrey')
+ax_radio2.set_title('Cząstka 2', fontweight='bold')
+radio2 = RadioButtons(ax_radio2, opcje, active=1)  # Domyślnie Antyproton
+
+
+# --- LOGIKA AKTUALIZACJI ---
+def update(val=None):
+    global fill1, fill2
+
+    E0 = slider_E.val
+    p1 = radio1.value_selected
+    p2 = radio2.value_selected
+
+    # 1. Obliczenia
+    dedx1, R1 = calculate_profile(E0, p1)
+    dedx2, R2 = calculate_profile(E0, p2)
+
+    # 2. Aktualizacja Linii 1
+    line1.set_data(x, dedx1)
+    line1.set_color(COLORS[p1])
+    line1.set_label(f'[1] {p1} (Zasięg: {R1:.1f} cm)')
+    vline1.set_xdata([R1, R1])
+    vline1.set_color(COLORS[p1])
+
+    # 3. Aktualizacja Linii 2
+    line2.set_data(x, dedx2)
+    line2.set_color(COLORS[p2])
+    line2.set_label(f'[2] {p2} (Zasięg: {R2:.1f} cm)')
+    vline2.set_xdata([R2, R2])
+    vline2.set_color(COLORS[p2])
+
+    # 4. Wypełnienia kolorami
+    if fill1 is not None:
+        fill1.remove()
+    if fill2 is not None:
+        fill2.remove()
+
+    fill1 = ax.fill_between(x, 0, dedx1, color=COLORS[p1], alpha=0.15)
+    fill2 = ax.fill_between(x, 0, dedx2, color=COLORS[p2], alpha=0.15)
+
+    # 5. DYNAMICZNE SKALOWANIE OSI Y
+    max_y = max(max(dedx1), max(dedx2))
+    ax.set_ylim(0, max_y * 1.15 if max_y > 0 else 10)
+
+    # Odświeżenie legendy
+    ax.legend(loc='upper right', fontsize=11)
+
+    fig.canvas.draw_idle()
+
+
+# Podpięcie zdarzeń
+slider_E.on_changed(update)
+radio1.on_clicked(update)
+radio2.on_clicked(update)
+
+# Inicjalne wywołanie
+update()
+
+plt.show()
